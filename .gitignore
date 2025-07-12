@@ -1,0 +1,55 @@
+# Help & build files
+HELP.md
+target/
+build/
+
+# Maven wrapper
+.mvn/wrapper/maven-wrapper.jar
+.mvn/wrapper/maven-wrapper.properties
+mvnw
+mvnw.cmd
+
+# Logs
+logs/
+*.log
+spring.log
+
+# IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# STS
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# VS Code
+.vscode/
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Temporary
+*.swp
+*.bak
+*.tmp
+
+# Environment-specific
+.env
+.env.*
+application.properties
+application.yml
