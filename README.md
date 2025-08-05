@@ -1,6 +1,6 @@
 # HealthAppointmentBooking
 
-A Spring Boot-based application to manage and book health appointments seamlessly. The system allows users to book, view, and manage appointments with doctors based on availability and specialization.
+A Spring Boot-based microservice to manage and book health appointments seamlessly. The system allows users to book, view, and manage appointments with doctors based on availability and specialization.
 
 ---
 
