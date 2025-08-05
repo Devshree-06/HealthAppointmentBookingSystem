@@ -23,7 +23,3 @@ A Spring Boot-based application to manage and book health appointments seamlessl
 - **API:** RESTful endpoints
 
 ---
-
-
-# Run the application
-./mvnw spring-boot:run
