@@ -27,7 +27,7 @@ public class RegisterUserService {
                 .flatMap(existingUser -> {
                     log.info("User details found");
                     return Mono.just(ResponseEntity.ok(
-                            new RegisterUserRes("Fail", 100, "User already exists")));
+                            new RegisterUserRes("Fail", 100, "User is already registered. Please log in.")));
                 })
                 .switchIfEmpty(
                         Mono.defer(() -> {

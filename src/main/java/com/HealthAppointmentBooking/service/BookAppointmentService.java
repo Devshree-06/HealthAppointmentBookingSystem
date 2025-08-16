@@ -34,48 +34,51 @@ public class BookAppointmentService {
     RazorPayRepo razorPayRepo;
 
 
-        public Mono<ResponseEntity<BookAppointmentRes>> bookAppointment(BookAppointmentReq bookAppointmentReq){
+    public Mono<ResponseEntity<BookAppointmentRes>> bookAppointment(BookAppointmentReq bookAppointmentReq) {
+        return viewSlotRepo.getAvailableSlots(bookAppointmentReq.getCategory(), bookAppointmentReq.getDoctorName())
+                .collectList()
+                .flatMap(slots -> {
+                    if (slots == null || slots.isEmpty()) {
+                        return Mono.just(ResponseEntity.ok(
+                                new BookAppointmentRes("Fail", 100, "Cannot book appointment. No slots available")));
+                    }
 
-            return viewSlotRepo.getAvailableSlots(bookAppointmentReq.getCategory(),bookAppointmentReq.getDoctorName())
-                    .collectList()
-                    .flatMap(appointment->{
-                        if(appointment == null || appointment.isEmpty()){
-                            return Mono.just(ResponseEntity.ok(new BookAppointmentRes("Fail",100,"Cannot book appointment.No slots available")));
-                        }
+                    String appointmentId = UUID.randomUUID().toString();
 
-                        PaymentDO paymentDO = new PaymentDO();
-                        paymentDO.setAppointmentId(UUID.randomUUID().toString());
-                        paymentDO.setAmount(bookAppointmentReq.getAmount());
+                    PaymentDO paymentDO = new PaymentDO();
+                    paymentDO.setAppointmentId(appointmentId);
+                    paymentDO.setAmount(bookAppointmentReq.getAmount());
 
-                        return razorpayPaymentService.createOrder(paymentDO)
-                                .flatMap(paymentResult->{
-
-                                    if(paymentResult == null){
-                                        return Mono.just(ResponseEntity.ok(new BookAppointmentRes("fail",100,"Payment not successfull.")));
-                                    }
-
-                                    String razorPayId = paymentResult.getString("id");
-                                    PaymentMaster paymentMaster = PaymentMaster.builder()
-                                            .razorpayOrderId(razorPayId)
-                                            .appointmentId(paymentDO.getAppointmentId())
-                                            .amount(paymentDO.getAmount())
-                                            .paymentStatus("Payment Done")
-                                            .createdAt(LocalDateTime.now())
-                                            .build();
-
-                                    return razorPayRepo.save(paymentMaster)
-                                            .then(bookAppointmentRepo.updateAppointment(bookAppointmentReq,paymentDO))
-                                            .then(doctorSlotRepo.updateBookingStatus(CommonMethods.parseToLocalTime(bookAppointmentReq.getSlotTime()),CommonMethods.parseToLocalDate(bookAppointmentReq.getSlotDate())))
-                                            .thenReturn(ResponseEntity.ok(new BookAppointmentRes("Success",200,"Appointment booked successfully.")));
-                                })
-                                .onErrorResume(error->{
-                                    log.info("The error occurred is : {}",error.getMessage());
+                    return razorpayPaymentService.createOrder(paymentDO)
+                            .flatMap(paymentResult -> {
+                                if (paymentResult == null) {
                                     return Mono.just(ResponseEntity.ok(
-                                            new BookAppointmentRes("Fail", 100, "Internal server error occurred.")));
-                                });
+                                            new BookAppointmentRes("Fail", 100, "Payment not successful.")));
+                                }
 
-                    });
+                                String razorPayId = paymentResult.getString("id");
 
-        }
+                                return razorPayRepo.save(PaymentMaster.builder()
+                                                .appointmentId(appointmentId)
+                                                .razorpayOrderId(razorPayId)
+                                                .amount(bookAppointmentReq.getAmount())
+                                                .paymentStatus("Payment Done")
+                                                .createdAt(LocalDateTime.now())
+                                                .build())
+                                        .then(bookAppointmentRepo.updateAppointment(bookAppointmentReq,appointmentId))
+                                        .then(doctorSlotRepo.updateBookingStatus(
+                                                CommonMethods.parseToLocalTime(bookAppointmentReq.getSlotTime()),
+                                                CommonMethods.parseToLocalDate(bookAppointmentReq.getSlotDate())))
+                                        .thenReturn(ResponseEntity.ok(
+                                                new BookAppointmentRes("Success", 200, "Appointment booked successfully.")));
+                            })
+                            .onErrorResume(error -> {
+                                log.error("The error occurred is : {}", error.getMessage(), error);
+                                return Mono.just(ResponseEntity.ok(
+                                        new BookAppointmentRes("Fail", 100, "Internal server error occurred.")));
+                            });
+                });
+    }
+
 
 }

@@ -1,5 +1,6 @@
 package com.HealthAppointmentBooking.model;
 
+import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
@@ -10,11 +11,12 @@ import java.time.LocalDateTime;
 
 @Data
 @Table("appointment_master")
+@Builder
 public class AppointmentMaster {
 
     @Id
     @Column("appointment_id")
-    private Integer appointmentId;
+    private String appointmentId;
 
     @Column("username")
     private String username;

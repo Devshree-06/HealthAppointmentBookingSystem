@@ -4,18 +4,13 @@ import com.HealthAppointmentBooking.model.Request.BookAppointmentReq;
 import com.HealthAppointmentBooking.model.Request.LoginUserReq;
 import com.HealthAppointmentBooking.model.Request.RegisterUserReq;
 import com.HealthAppointmentBooking.model.Request.ViewSlotReq;
-import com.HealthAppointmentBooking.model.Response.BookAppointmentRes;
-import com.HealthAppointmentBooking.model.Response.LoginUserRes;
-import com.HealthAppointmentBooking.model.Response.RegisterUserRes;
-import com.HealthAppointmentBooking.model.Response.ViewSlotsRes;
-import com.HealthAppointmentBooking.service.BookAppointmentService;
-import com.HealthAppointmentBooking.service.RegisterUserService;
-import com.HealthAppointmentBooking.service.UserLoginService;
-import com.HealthAppointmentBooking.service.ViewSlotService;
+import com.HealthAppointmentBooking.model.Response.*;
+import com.HealthAppointmentBooking.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
@@ -33,6 +28,8 @@ public class HealthAppointmentController {
     ViewSlotService viewSlotService;
     @Autowired
     BookAppointmentService bookAppointmentService;
+    @Autowired
+    ViewPatientHistoryService viewPatientHistoryService;
 
     @PostMapping("/register")
     public Mono<ResponseEntity<RegisterUserRes>> register(@RequestBody RegisterUserReq request){
@@ -61,5 +58,12 @@ public class HealthAppointmentController {
         String reqId = UUID.randomUUID().toString();
         return bookAppointmentService.bookAppointment(req)
                 .doOnNext(result-> log.info("Appointment is booked successfully" + reqId));
+    }
+
+    @PostMapping("/patient/history")
+    public Mono<ResponseEntity<ViewPatientHistoryRes>> viewPatientHistory(ServerWebExchange exchange){
+        String reqId = UUID.randomUUID().toString();
+        return viewPatientHistoryService.viewPatientHistory(exchange)
+                .doOnNext(result-> log.info("History is fetched successfully" + reqId));
     }
 }
