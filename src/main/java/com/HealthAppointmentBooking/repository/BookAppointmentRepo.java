@@ -12,6 +12,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Repository
 @Slf4j
@@ -53,16 +54,20 @@ public class BookAppointmentRepo {
 
 
     public Flux<ViewPatientHistoryData> viewPatientHistory(String patientName){
-        String query = "select am.appointment_id,am.username as patientName, am.doctor_name, am.booking_slot,am.booking_status,pm.payment_status from appointment_master\n" +
+        String query = "select am.appointment_id,am.username as patientName, am.doctor_name, am.booking_slot as booking_slot,am.booking_status,pm.payment_status from appointment_master\n" +
                 "am join payment_master pm\n" +
                 "on am.appointment_id = pm.appointment_id\n" +
                 "where am.username = :patientName\n" +
-                "and am.booking_slot >= NOW() - INTERVAL '7 days'";
+                "and CAST(booking_slot AS timestamp) >= NOW() - INTERVAL '7 days'";
 
         return template.getDatabaseClient().sql(query)
                 .bind("patientName",patientName)
                 .map((row, rowMetadata) -> {
-                    LocalDateTime bookingSlot = row.get("booking_slot", LocalDateTime.class);
+                    String bookingSlotStr = row.get("booking_slot", String.class);
+                    LocalDateTime bookingSlot = LocalDateTime.parse(
+                            bookingSlotStr,
+                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss") // adjust pattern if needed
+                    );
                     return ViewPatientHistoryData.builder()
                             .appointmentId(row.get("appointment_id", String.class))
                             .patientName(row.get("patientName", String.class))
