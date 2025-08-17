@@ -1,9 +1,6 @@
 package com.HealthAppointmentBooking.controller;
 
-import com.HealthAppointmentBooking.model.Request.BookAppointmentReq;
-import com.HealthAppointmentBooking.model.Request.LoginUserReq;
-import com.HealthAppointmentBooking.model.Request.RegisterUserReq;
-import com.HealthAppointmentBooking.model.Request.ViewSlotReq;
+import com.HealthAppointmentBooking.model.Request.*;
 import com.HealthAppointmentBooking.model.Response.*;
 import com.HealthAppointmentBooking.service.*;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +27,8 @@ public class HealthAppointmentController {
     BookAppointmentService bookAppointmentService;
     @Autowired
     ViewPatientHistoryService viewPatientHistoryService;
+    @Autowired
+    CancelAppointmentService cancelAppointmentService;
 
     @PostMapping("/register")
     public Mono<ResponseEntity<RegisterUserRes>> register(@RequestBody RegisterUserReq request){
@@ -65,5 +64,12 @@ public class HealthAppointmentController {
         String reqId = UUID.randomUUID().toString();
         return viewPatientHistoryService.viewPatientHistory(exchange)
                 .doOnNext(result-> log.info("History is fetched successfully" + reqId));
+    }
+
+    @PostMapping("/cancelAppointment")
+    public Mono<ResponseEntity<CancelAppointmentRes>> cancelAppointment(@RequestBody CancelAppointmentReq request){
+        String reqId = UUID.randomUUID().toString();
+        return cancelAppointmentService.cancelAppointment(request)
+                .doOnNext(result-> log.info("Appointment cancelled successfully" + reqId));
     }
 }
